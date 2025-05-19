@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
 import random
-import time
 
 history_points = [
     {"year": "Ancient Egypt (3500 BC)", "fact": "In ancient Egypt, body odor was considered a significant social problem, especially in the hot desert climate. To address this, Egyptians developed some of the earliest forms of deodorant, relying on natural methods. They used aromatic herbs, myrrh, frankincense, and other fragrant oils to mask body odor. They also placed scented cones of fat on their heads that would melt and release pleasant scents as they moved about, helping them stay fresh even in the intense heat.", "question": "What did ancient Egyptians use to reduce body odor?", "options": ["Natural oils and spices", "Perfume", "Soap", "Vinegar"], "answer": "Natural oils and spices"},
@@ -21,11 +20,9 @@ class DeodorantTimeTraveler(tk.Tk):
         self.total_questions = len(history_points)
         self.configure(bg="#e6f7ff")
 
-        # Canvas for animated background
         self.canvas = tk.Canvas(self, width=500, height=750, bg="#e6f7ff", highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
 
-        # Create waves on canvas
         self.waves = []
         for i in range(5):
             y = 700 - i*30
@@ -45,10 +42,9 @@ class DeodorantTimeTraveler(tk.Tk):
 
     def create_start_screen(self):
         self.clear_screen()
-        self.title_label = tk.Label(self.canvas, text="🕰️ Deodorant Time Traveler", font=("Arial", 24, "bold"), bg="#e6f7ff")
-        self.start_button = tk.Button(self.canvas, text="Start Quiz", font=("Arial", 16), width=20, bg="#00bfff", fg="white", activebackground="#0077b6", activeforeground="white", command=self.start_quiz)
-
-        self.title_label.place(relx=0.5, rely=0.3, anchor="center")
+        self.title_label = tk.Label(self.canvas, text="🕰️ Deodorant Time Traveler", font=("Arial", 28, "bold"), bg="#e6f7ff", fg="#0077b6")
+        self.start_button = tk.Button(self.canvas, text="Start Quiz", font=("Arial", 18, "bold"), width=20, bg="#00bfff", fg="white", activebackground="#0077b6", activeforeground="white", command=self.start_quiz)
+        self.title_label.place(relx=0.5, rely=0.25, anchor="center")
         self.start_button.place(relx=0.5, rely=0.5, anchor="center")
 
     def start_quiz(self):
@@ -58,14 +54,18 @@ class DeodorantTimeTraveler(tk.Tk):
         self.update_content()
 
     def update_content(self):
+        if self.index == self.total_questions:
+            self.show_final_score()
+            return
+
         current = history_points[self.index]
         self.clear_screen()
 
-        self.year_label = tk.Label(self.canvas, text=current["year"], font=("Arial", 20, "bold"), bg="#e6f7ff")
-        self.fact_label = tk.Label(self.canvas, text=current["fact"], wraplength=450, font=("Arial", 12), bg="#e6f7ff")
-        self.question_label = tk.Label(self.canvas, text=current["question"], font=("Arial", 16, "italic"), wraplength=450, bg="#e6f7ff")
+        self.year_label = tk.Label(self.canvas, text=current["year"], font=("Arial", 20, "bold"), bg="#e6f7ff", fg="#0077b6")
+        self.fact_label = tk.Label(self.canvas, text=current["fact"], wraplength=450, font=("Arial", 14), bg="#e6f7ff", fg="#333333")
+        self.question_label = tk.Label(self.canvas, text=current["question"], font=("Arial", 16, "italic"), wraplength=450, bg="#e6f7ff", fg="#555555")
 
-        self.year_label.place(relx=0.5, rely=0.1, anchor="n")
+        self.year_label.place(relx=0.5, rely=0.05, anchor="n")
         self.fact_label.place(relx=0.5, rely=0.2, anchor="n")
         self.question_label.place(relx=0.5, rely=0.4, anchor="n")
 
@@ -74,32 +74,23 @@ class DeodorantTimeTraveler(tk.Tk):
 
         options = current["options"][:]
         random.shuffle(options)
-        for i, option in enumerate(options):
+        for option in options:
             btn = tk.Button(self.options_frame, text=option, font=("Arial", 14), width=40, bg="#00bfff", fg="white", activebackground="#0077b6", activeforeground="white", command=lambda opt=option: self.check_answer(opt))
             btn.pack(pady=5)
 
-        self.fade_in(self.year_label)
-        self.fade_in(self.fact_label)
-        self.fade_in(self.question_label)
-        self.fade_in(self.options_frame)
+    def show_final_score(self):
+        self.clear_screen()
+        final_message = f"🎯 Quiz Complete! You scored {self.score} out of {self.total_questions}!"
+        self.final_label = tk.Label(self.canvas, text=final_message, font=("Arial", 20, "bold"), bg="#e6f7ff", fg="#0077b6")
+        self.final_label.place(relx=0.5, rely=0.4, anchor="center")
 
-    def fade_in(self, widget, alpha=0):
-        # Tkinter doesn't support true alpha transparency on widgets, but we can simulate fade by changing text color
-        # from transparent-ish to opaque by gradually changing color brightness.
-        if alpha >= 1.0:
-            return
-        fg_color = f"#{int(0 + alpha*0):02x}{int(0 + alpha*0):02x}{int(255*alpha):02x}"
-        try:
-            widget.config(fg=fg_color)
-        except:
-            pass
-        self.after(50, lambda: self.fade_in(widget, alpha + 0.1))
+        restart_button = tk.Button(self.canvas, text="Restart Quiz", font=("Arial", 16, "bold"), width=20, bg="#00bfff", fg="white", activebackground="#0077b6", activeforeground="white", command=self.start_quiz)
+        restart_button.place(relx=0.5, rely=0.6, anchor="center")
 
     def clear_screen(self):
         for widget in self.canvas.winfo_children():
             widget.destroy()
         self.canvas.delete("all")
-        # Redraw waves to keep background
         for i, wave in enumerate(self.waves):
             self.waves[i] = self.canvas.create_oval(-200 + i*100, 700 - i*30, 200 + i*100, 740 - i*30, fill="#00bfff", outline="")
 
@@ -107,11 +98,10 @@ class DeodorantTimeTraveler(tk.Tk):
         current = history_points[self.index]
         if selected == current["answer"]:
             messagebox.showinfo("Correct!", "🎉 Great job! That's the right answer.")
-            self.score += 1
+                        self.score += 1
         else:
             messagebox.showwarning("Incorrect", f"❌ Oops! The correct answer was '{current['answer']}'.")
-
-        self.index = (self.index + 1) % len(history_points)
+                    self.index += 1
         self.update_content()
 
 if __name__ == "__main__":
